@@ -34,7 +34,7 @@ Nejčastější důvody, proč Vite build na Cloudflare spadne nebo ukáže bíl
 
 1. **Vite 7 + stará Node = spadlý build.** Vite 7 vyžaduje Node ≥ 20.19; Cloudflare často jede na starší Node a build padá (`crypto.hash is not a function`). → Záměrně používáme **Vite 6**, navíc je Node pinnutá v `.node-version` a `.nvmrc` na `20`.
 2. **Bílá stránka / 404 na assetech.** Špatná `base` cesta. → `vite.config.js` má `base: './'` (relativní cesty k assetům fungují na root i podadresáři).
-3. **404 po refreshi / na přímém odkazu (SPA).** → `public/_redirects` s pravidlem `/*  /index.html  200` pošle všechny cesty do SPA.
+3. **404 po refreshi / na přímém odkazu (SPA).** → na Cloudflare **Workers** to řeší `not_found_handling: "single-page-application"` ve `wrangler.jsonc` (na Pages by se použil `public/_redirects`, ten ale Workers static assets odmítá jako smyčku — proto tu není).
 4. **Špatný výstupní adresář.** → Build jde do `dist` (default Vite), což je přesně to, co Cloudflare očekává.
 
 ## Struktura
@@ -45,8 +45,7 @@ Nejčastější důvody, proč Vite build na Cloudflare spadne nebo ukáže bíl
 ├── vite.config.js
 ├── package.json
 ├── .node-version / .nvmrc      # pin Node 20 pro Cloudflare
-├── public/
-│   └── _redirects              # SPA fallback
+├── wrangler.jsonc              # Cloudflare Workers: deploy ./dist jako static assets + SPA fallback
 └── src/
     ├── main.jsx                # vstupní bod
     └── CreditCalculator.jsx    # celá kalkulačka
